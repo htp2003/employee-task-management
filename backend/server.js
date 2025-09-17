@@ -1,36 +1,47 @@
 const express = require('express');
 const cors = require('cors');
-const bodyParser = require('body-parser');
-const mongoose = require('mongoose');
 const http = require('http');
 const socketIo = require('socket.io');
 require('dotenv').config();
 
 const app = express();
 const server = http.createServer(app);
+
+// socket setup
 const io = socketIo(server, {
     cors: {
-        origin: 'http://localhost:3000',
+        origin: 'http://localhost:5173', // vite port
         methods: ['GET', 'POST']
     }
 });
 
+// basic middleware
 app.use(cors());
 app.use(express.json());
 
-//route for users
-app.use('/api/owner', require('./routes/ownerRoutes'));
-app.use('/api/employee', require('./routes/employeeRoutes'));
+// routes
+app.use('/api/owner', require('./routes/owner'));
+app.use('/api/employee', require('./routes/employee'));
 
-//socket
-io.on('connection', (socket) => {
-    console.log('New user connected', socket.id);
-    socket.on('disconnect', () => {
-        console.log('User disconnected', socket.id);
-    });
+// simple test route
+app.get('/', (req, res) => {
+    res.json({ message: 'server works' });
 });
 
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+// socket connection
+io.on('connection', (socket) => {
+    console.log('user connected:', socket.id);
+
+    // handle disconnect
+    socket.on('disconnect', () => {
+        console.log('user left:', socket.id);
+    });
+
+    // TODO: add chat events here later
+});
+
+// start server
+const port = process.env.PORT || 5000;
+server.listen(port, () => {
+    console.log('server running on', port);
 });
