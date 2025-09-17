@@ -101,7 +101,7 @@ router.post('/validateAccessCode', async (req, res) => {
     }
 });
 
-// get employee profile (bonus route for frontend)
+// get employee profile
 router.post('/getProfile', async (req, res) => {
     const empId = req.body.employeeId;
 

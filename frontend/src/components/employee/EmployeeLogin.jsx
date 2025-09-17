@@ -2,34 +2,35 @@ import { useState } from "react";
 import axios from "axios";
 import '../../styles/forms.css';
 
-function OwnerLogin() {
-    const [phone, setPhone] = useState("");
-    const [code, setCode] = useState("");
+function EmployeeLogin() {
+    const [email, setEmail] = useState('');
+    const [code, setCode] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [step, setStep] = useState(1);
 
     const sendCode = async () => {
-        if (!phone) {
-            setError('need phone number');
+        if (!email) {
+            alert('please fill in your email');
             return;
         }
 
         setLoading(true);
-        console.log('sending code to:', phone);
+        console.log('sending code to:', email);
 
         try {
-            const response = await axios.post("http://localhost:5000/api/owner/createNewAccessCode", {
-                phoneNumber: phone
+            const response = await axios.post('http://localhost:5000/api/employee/loginEmail', {
+                email: email
             });
 
             console.log('response:', response.data);
 
             if (response.data.success) {
                 setStep(2);
-                setError("");
-                console.log('code sent successfully');
+                setError('');
+                console.log('code sent to email');
             } else {
+                console.log('code send failed');
                 setError('failed to send code');
             }
         } catch (err) {
@@ -47,23 +48,25 @@ function OwnerLogin() {
         console.log('checking code:', code);
 
         try {
-            const res = await axios.post("http://localhost:5000/api/emplotee/validateAccessCode", {
-                phoneNumber: phone,
+            const res = await axios.post('http://localhost:5000/api/employee/validateAccessCode', {
+                email: email,
                 accessCode: code
             });
 
+            console.log('verify response:', res.data);
+
             if (res.data.success) {
-                console.log('login success');
-                localStorage.setItem('ownerPhone', phone);
-                alert("Login successful!");
-                window.location.href = '/owner/dashboard';
+                console.log('employee login success');
+                localStorage.setItem('employeeData', JSON.stringify(res.data.employee));
+                alert('login successful');
+                window.location.href = '/employee/dashboard';
             } else {
-                console.log('wrong code');
+                console.log('verify failed');
                 setError('code is wrong');
             }
-        } catch (error) {
-            console.log('verify failed:', error);
-            setError('validation error');
+        } catch (err) {
+            console.log('verify error:', err);
+            setError('validation failed');
         }
 
         setLoading(false);
@@ -72,17 +75,17 @@ function OwnerLogin() {
     return (
         <div className="login-container">
             <div className="login-box">
-                <h2>Owner Login</h2>
+                <h2>Employee Login</h2>
 
                 {error && <div className="error-msg">{error}</div>}
 
                 {step === 1 ? (
                     <div className="form-group">
                         <input
-                            type="text"
-                            placeholder="Enter phone number"
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
+                            type="email"
+                            placeholder="Enter your email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                             className="form-input"
                             disabled={loading}
                         />
@@ -94,13 +97,17 @@ function OwnerLogin() {
                         >
                             {loading ? "Sending..." : "Send Code"}
                         </button>
+
+                        <div style={{ marginTop: '15px', textAlign: 'center' }}>
+                            <p>Owner? <a href="/" style={{ color: '#007bff' }}>Login here</a></p>
+                        </div>
                     </div>
                 ) : (
                     <div className="form-group">
-                        <p>Code sent to {phone}</p>
+                        <p>Code sent to {email}</p>
                         <input
                             type="text"
-                            placeholder="Enter access code"
+                            placeholder="Enter access code from email"
                             value={code}
                             onChange={(e) => setCode(e.target.value)}
                             className="form-input"
@@ -112,7 +119,7 @@ function OwnerLogin() {
                             disabled={loading}
                             style={{ marginTop: '10px' }}
                         >
-                            {loading ? "Checking..." : "Verify"}
+                            {loading ? "Verifying..." : "Login"}
                         </button>
                         <button
                             onClick={() => setStep(1)}
@@ -128,4 +135,4 @@ function OwnerLogin() {
     );
 }
 
-export default OwnerLogin;
+export default EmployeeLogin;
