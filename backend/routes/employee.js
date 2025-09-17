@@ -91,7 +91,8 @@ router.post('/validateAccessCode', async (req, res) => {
                 id: empData.id,
                 name: empData.name,
                 email: empData.email,
-                dept: empData.department
+                phoneNumber: empData.phoneNumber,
+                role: empData.role
             }
         });
 
@@ -119,7 +120,8 @@ router.post('/getProfile', async (req, res) => {
             profile: {
                 name: data.name,
                 email: data.email,
-                department: data.department,
+                phoneNumber: data.phoneNumber,
+                role: data.role,
                 id: data.id
             }
         });
@@ -132,7 +134,7 @@ router.post('/getProfile', async (req, res) => {
 
 // update employee profile
 router.post('/updateProfile', async (req, res) => {
-    const { employeeId, name, email, department } = req.body;
+    const { employeeId, name, email, phoneNumber } = req.body;
 
     if (!employeeId) return res.json({ success: false, message: 'need employee id' });
 
@@ -140,7 +142,7 @@ router.post('/updateProfile', async (req, res) => {
         const updateData = {};
         if (name) updateData.name = name;
         if (email) updateData.email = email;
-        if (department) updateData.department = department;
+        if (phoneNumber) updateData.phoneNumber = phoneNumber;
         updateData.updatedAt = new Date();
 
         await db.collection('employees').doc(employeeId).update(updateData);

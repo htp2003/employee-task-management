@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const http = require('http');
 const socketIo = require('socket.io');
+const { setupChatSocket, getOnlineUsers } = require('./socket/chatSocket');
 require('dotenv').config();
 
 const app = express();
@@ -10,7 +11,7 @@ const server = http.createServer(app);
 // socket setup
 const io = socketIo(server, {
     cors: {
-        origin: 'http://localhost:5173', // vite port
+        origin: '*',
         methods: ['GET', 'POST']
     }
 });
@@ -39,6 +40,14 @@ io.on('connection', (socket) => {
 
     // TODO: add chat events here later
 });
+// online users endpoint
+app.get('/api/online-users', (req, res) => {
+    const users = getOnlineUsers();
+    res.json({ onlineUsers: users });
+});
+
+// setup socket events - THIẾU DÒNG NÀY!
+setupChatSocket(io);
 
 // start server
 const port = process.env.PORT || 5000;

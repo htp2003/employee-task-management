@@ -22,7 +22,7 @@ router.post('/createNewAccessCode', async (req, res) => {
         const accessCode = generateAccessCode();
         //save to firebase
         await db.collection('owners').doc(phoneNumber).set({
-            phone: phoneNumber,
+            phoneNumber: phoneNumber,
             accessCode: accessCode,
             createdAt: new Date()
         });
@@ -49,7 +49,7 @@ router.post('/validateAccessCode', async (req, res) => {
         const { accessCode, phoneNumber } = req.body;
 
         if (!accessCode || !phoneNumber) {
-            return res.status(400).json({ success: false, error: 'Access code and phone number required' });
+            return res.status(400).json({ success: false, error: 'Access code and phoneNumber number required' });
         }
 
         //get from fb
@@ -82,10 +82,10 @@ router.post('/validateAccessCode', async (req, res) => {
 //create employee
 router.post('/createEmployee', async (req, res) => {
     try {
-        const { name, email, department } = req.body;
+        const { name, email, phoneNumber, role } = req.body;
 
-        if (!name || !email || !department) {
-            return res.status(400).json({ success: false, error: 'Name, email, and department required' });
+        if (!name || !email || !phoneNumber || !role) {
+            return res.status(400).json({ success: false, error: 'Name, email, phoneNumber number, role required' });
         }
 
         const employeeId = `emp_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
@@ -95,7 +95,8 @@ router.post('/createEmployee', async (req, res) => {
             id: employeeId,
             name: name,
             email: email,
-            department: department,
+            phoneNumber: phoneNumber,
+            role: role,
             createdAt: new Date(),
             isSetup: false
         });

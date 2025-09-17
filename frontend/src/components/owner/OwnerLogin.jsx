@@ -3,24 +3,24 @@ import axios from "axios";
 import '../../styles/forms.css';
 
 function OwnerLogin() {
-    const [phone, setPhone] = useState("");
+    const [phoneNumber, setPhone] = useState("");
     const [code, setCode] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [step, setStep] = useState(1);
 
     const sendCode = async () => {
-        if (!phone) {
-            setError('need phone number');
+        if (!phoneNumber) {
+            setError('need phoneNumber number');
             return;
         }
 
         setLoading(true);
-        console.log('sending code to:', phone);
+        console.log('sending code to:', phoneNumber);
 
         try {
             const response = await axios.post("http://localhost:5000/api/owner/createNewAccessCode", {
-                phoneNumber: phone
+                phoneNumber: phoneNumber
             });
 
             console.log('response:', response.data);
@@ -47,14 +47,14 @@ function OwnerLogin() {
         console.log('checking code:', code);
 
         try {
-            const res = await axios.post("http://localhost:5000/api/emplotee/validateAccessCode", {
-                phoneNumber: phone,
+            const res = await axios.post("http://localhost:5000/api/owner/validateAccessCode", {
+                phoneNumber: phoneNumber,
                 accessCode: code
             });
 
             if (res.data.success) {
                 console.log('login success');
-                localStorage.setItem('ownerPhone', phone);
+                localStorage.setItem('ownerPhone', phoneNumber);
                 alert("Login successful!");
                 window.location.href = '/owner/dashboard';
             } else {
@@ -80,8 +80,8 @@ function OwnerLogin() {
                     <div className="form-group">
                         <input
                             type="text"
-                            placeholder="Enter phone number"
-                            value={phone}
+                            placeholder="Enter phoneNumber number"
+                            value={phoneNumber}
                             onChange={(e) => setPhone(e.target.value)}
                             className="form-input"
                             disabled={loading}
@@ -97,7 +97,7 @@ function OwnerLogin() {
                     </div>
                 ) : (
                     <div className="form-group">
-                        <p>Code sent to {phone}</p>
+                        <p>Code sent to {phoneNumber}</p>
                         <input
                             type="text"
                             placeholder="Enter access code"

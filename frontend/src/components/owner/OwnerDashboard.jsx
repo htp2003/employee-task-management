@@ -8,7 +8,8 @@ function OwnerDashboard() {
     const [formData, setFormData] = useState({
         name: '',
         email: '',
-        department: ''
+        phoneNumber: '',
+        role: ''
     });
 
     const loadEmployees = async () => {
@@ -31,7 +32,7 @@ function OwnerDashboard() {
     };
 
     const handleSubmit = async () => {
-        if (!formData.name || !formData.email || !formData.department) {
+        if (!formData.name || !formData.email || !formData.phoneNumber || !formData.role) {
             alert('Please fill all fields');
             return;
         }
@@ -45,7 +46,7 @@ function OwnerDashboard() {
             if (res.data.success) {
                 console.log('employee created:', res.data.employeeId);
                 alert('Employee created successfully!');
-                setFormData({ name: '', email: '', department: '' });
+                setFormData({ name: '', email: '', phoneNumber: '', role: '' });
                 setShowForm(false);
                 loadEmployees(); // reload list
             } else {
@@ -134,11 +135,29 @@ function OwnerDashboard() {
                     <div className="form-group">
                         <input
                             type="text"
-                            placeholder="Department"
-                            value={formData.department}
-                            onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                            placeholder="Phone Number"
+                            value={formData.phoneNumber}
+                            onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
                             className="form-input"
                         />
+                    </div>
+                    <div className="form-group">
+                        <select
+                            value={formData.role}
+                            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                            className="form-input"
+                            style={{ backgroundColor: 'white' }}
+                        >
+                            <option value="">Select Role</option>
+                            <option value="Manager">Manager</option>
+                            <option value="Developer">Developer</option>
+                            <option value="Designer">Designer</option>
+                            <option value="Tester">Tester</option>
+                            <option value="Analyst">Analyst</option>
+                            <option value="Support">Support</option>
+                            <option value="HR">HR</option>
+                            <option value="Marketing">Marketing</option>
+                        </select>
                     </div>
                     <button
                         onClick={handleSubmit}
@@ -161,7 +180,8 @@ function OwnerDashboard() {
                             <tr style={{ backgroundColor: '#f5f5f5' }}>
                                 <th style={{ padding: '10px', border: '1px solid #ddd' }}>Name</th>
                                 <th style={{ padding: '10px', border: '1px solid #ddd' }}>Email</th>
-                                <th style={{ padding: '10px', border: '1px solid #ddd' }}>Department</th>
+                                <th style={{ padding: '10px', border: '1px solid #ddd' }}>Phone</th>
+                                <th style={{ padding: '10px', border: '1px solid #ddd' }}>Role</th>
                                 <th style={{ padding: '10px', border: '1px solid #ddd' }}>Actions</th>
                             </tr>
                         </thead>
@@ -170,7 +190,7 @@ function OwnerDashboard() {
                                 <tr key={emp.id || index}>
                                     <td style={{ padding: '8px', border: '1px solid #ddd' }}>{emp.name}</td>
                                     <td style={{ padding: '8px', border: '1px solid #ddd' }}>{emp.email}</td>
-                                    <td style={{ padding: '8px', border: '1px solid #ddd' }}>{emp.department}</td>
+                                    <td style={{ padding: '8px', border: '1px solid #ddd' }}>{emp.phoneNumber}</td>
                                     <td style={{ padding: '8px', border: '1px solid #ddd' }}>
                                         <button
                                             onClick={() => deleteEmp(emp.id, emp.name)}

@@ -10,13 +10,14 @@ function EmployeeDashboard() {
     const [formData, setFormData] = useState({
         name: '',
         email: '',
-        department: ''
+        phoneNumber: '',
+        role: ''
     });
 
     const loadProfile = async () => {
         console.log('loading profile...');
 
-        // Get employee data từ localStorage first
+        //get employee from db
         const employeeData = localStorage.getItem('employeeData');
         if (!employeeData) {
             alert('Please login first');
@@ -39,7 +40,7 @@ function EmployeeDashboard() {
                 setFormData({
                     name: res.data.profile.name || '',
                     email: res.data.profile.email || '',
-                    department: res.data.profile.department || ''
+                    phoneNumber: res.data.profile.phoneNumber || ''
                 });
             } else {
                 console.log('no profile found');
@@ -52,7 +53,7 @@ function EmployeeDashboard() {
     };
 
     const updateProfile = async () => {
-        if (!formData.name || !formData.email || !formData.department) {
+        if (!formData.name || !formData.email || !formData.phoneNumber) {
             alert('Please fill all fields');
             return;
         }
@@ -112,7 +113,7 @@ function EmployeeDashboard() {
 
             {error && <div className="error-msg">{error}</div>}
 
-            {/* Profile Section */}
+            {/* Profile */}
             <div style={{ backgroundColor: '#f8f9fa', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h2>My Profile</h2>
@@ -146,11 +147,11 @@ function EmployeeDashboard() {
                             />
                         </div>
                         <div className="form-group">
-                            <label>Department:</label>
+                            <label>Phone Number:</label>
                             <input
                                 type="text"
-                                value={formData.department}
-                                onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                                value={formData.phoneNumber}
+                                onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
                                 className="form-input"
                             />
                         </div>
@@ -165,22 +166,24 @@ function EmployeeDashboard() {
                     </div>
                 ) : (
                     <div style={{ marginTop: '15px' }}>
+                        <p><strong>Employee ID:</strong> {profile.id}</p>
                         <p><strong>Name:</strong> {profile.name}</p>
                         <p><strong>Email:</strong> {profile.email}</p>
-                        <p><strong>Department:</strong> {profile.department}</p>
-                        <p><strong>Employee ID:</strong> {profile.id}</p>
+                        <p><strong>Phone:</strong> {profile.phoneNumber}</p>
+                        <p><strong>Role:</strong> {profile.role}</p>
+
                     </div>
                 )}
             </div>
 
-            {/* Tasks Section - Placeholder for now */}
+            {/* tasks section - placeholder */}
             <div style={{ backgroundColor: '#ffffff', padding: '20px', border: '1px solid #ddd', borderRadius: '8px', marginBottom: '20px' }}>
                 <h2>My Tasks</h2>
                 <p style={{ color: '#666', fontStyle: 'italic' }}>
                     Task management feature will be implemented later.
                 </p>
 
-                {/* Mock tasks for now */}
+                {/* Mock tasks */}
                 <div style={{ marginTop: '15px' }}>
                     <div style={{ padding: '10px', backgroundColor: '#f8f9fa', marginBottom: '10px', borderRadius: '4px' }}>
                         <p><strong>Sample Task 1:</strong> Complete project documentation</p>
@@ -193,7 +196,7 @@ function EmployeeDashboard() {
                 </div>
             </div>
 
-            {/* Chat Section - Placeholder */}
+            {/* chat Section - Placeholder */}
             <div style={{ backgroundColor: '#ffffff', padding: '20px', border: '1px solid #ddd', borderRadius: '8px' }}>
                 <h2>Chat with Owner</h2>
                 <p style={{ color: '#666', fontStyle: 'italic' }}>
