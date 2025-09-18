@@ -5,47 +5,13 @@ import OwnerDashboard from "./components/owner/OwnerDashboard";
 import EmployeeDashboard from "./components/employee/EmployeeDashboard";
 import OwnerLayout from "./layouts/OwnerLayout";
 import EmployeeLayout from "./layouts/EmployeeLayout";
-
-// Placeholder components for new pages
-function OwnerTasks() {
-    return (
-        <div>
-            <h2>Task Management</h2>
-            <p>Assign and manage employee tasks</p>
-            <div style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '8px' }}>
-                <p style={{ color: '#666' }}>Task assignment feature coming soon...</p>
-            </div>
-        </div>
-    );
-}
-
-function OwnerMessages() {
-    return (
-        <div>
-            <h2>All Messages</h2>
-            <p>Chat with employees</p>
-            <div style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '8px' }}>
-                <p style={{ color: '#666' }}>Real-time chat interface coming soon...</p>
-            </div>
-        </div>
-    );
-}
-
-function EmployeeMessages() {
-    return (
-        <div>
-            <h2>Message</h2>
-            <p>Chat with Owner</p>
-            <div style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '8px' }}>
-                <p style={{ color: '#666' }}>Chat with owner interface coming soon...</p>
-            </div>
-        </div>
-    );
-}
-
+import OwnerMessages from "./components/owner/OwnerMessages";
+import EmployeeMessages from "./components/employee/EmployeeMessages";
+import OwnerTasks from "./components/owner/OwnerTasks";
+import EmployeeSetup from "./components/employee/EmployeeSetup";
 export default function useRouteElements() {
     const routeElements = useRoutes([
-        // Public routes (Login pages)
+        //default
         {
             path: "/",
             element: <OwnerLogin />
@@ -55,7 +21,7 @@ export default function useRouteElements() {
             element: <EmployeeLogin />
         },
 
-        // Owner routes with OwnerLayout
+        //owner routes 
         {
             path: "/owner/dashboard",
             element: (
@@ -81,7 +47,7 @@ export default function useRouteElements() {
             )
         },
 
-        // Employee routes with EmployeeLayout  
+        // employee routes 
         {
             path: "/employee/dashboard",
             element: (
@@ -97,7 +63,16 @@ export default function useRouteElements() {
                     <EmployeeMessages />
                 </EmployeeLayout>
             )
+        },
+        {
+            path: "/employee/setup",
+            element: (
+
+                <EmployeeSetup />
+
+            )
         }
+
     ]);
 
     return routeElements;

@@ -73,37 +73,62 @@ const setupChatSocket = (io) => {
             socket.emit('room_joined', { room: roomName });
         });
 
-        // get chat history
+        // get chat history - FIXED QUERY
         socket.on('get_chat_history', async (data) => {
             const { userId, userType } = data;
 
             console.log('getting history for:', userId);
 
             try {
-                let query;
+                let messages = [];
 
                 if (userType === 'owner') {
-                    query = db.collection('messages')
+                    // Owner gets all messages
+                    const snapshot = await db.collection('messages')
                         .orderBy('timestamp', 'asc')
-                        .limit(50);
-                } else {
-                    query = db.collection('messages')
-                        .where('from', 'in', [userId, 'owner'])
-                        .where('to', 'in', [userId, 'owner'])
-                        .orderBy('timestamp', 'asc')
-                        .limit(50);
-                }
+                        .limit(100)
+                        .get();
 
-                const snapshot = await query.get();
-                const messages = [];
-
-                snapshot.forEach(doc => {
-                    messages.push({
-                        id: doc.id,
-                        ...doc.data(),
-                        timestamp: doc.data().timestamp.toDate()
+                    snapshot.forEach(doc => {
+                        messages.push({
+                            id: doc.id,
+                            ...doc.data(),
+                            timestamp: doc.data().timestamp.toDate()
+                        });
                     });
-                });
+                } else {
+                    // Employee gets messages where they are sender or receiver
+                    // Query 1: Messages from employee to owner
+                    const fromEmpQuery = await db.collection('messages')
+                        .where('from', '==', userId)
+                        .where('to', '==', 'owner')
+                        .get();
+
+                    fromEmpQuery.forEach(doc => {
+                        messages.push({
+                            id: doc.id,
+                            ...doc.data(),
+                            timestamp: doc.data().timestamp.toDate()
+                        });
+                    });
+
+                    // Query 2: Messages from owner to employee
+                    const toEmpQuery = await db.collection('messages')
+                        .where('from', '==', 'owner')
+                        .where('to', '==', userId)
+                        .get();
+
+                    toEmpQuery.forEach(doc => {
+                        messages.push({
+                            id: doc.id,
+                            ...doc.data(),
+                            timestamp: doc.data().timestamp.toDate()
+                        });
+                    });
+
+                    // Sort by timestamp since we combined two queries
+                    messages.sort((a, b) => a.timestamp - b.timestamp);
+                }
 
                 console.log('found messages:', messages.length);
                 socket.emit('chat_history', messages);

@@ -38,7 +38,6 @@ io.on('connection', (socket) => {
         console.log('user left:', socket.id);
     });
 
-    // TODO: add chat events here later
 });
 // online users endpoint
 app.get('/api/online-users', (req, res) => {

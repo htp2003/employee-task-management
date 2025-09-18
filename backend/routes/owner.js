@@ -181,4 +181,82 @@ router.get('/getAllEmployees', async (req, res) => {
     }
 });
 
+// create task for employee
+router.post('/createTask', async (req, res) => {
+    const { title, description, assignedTo, dueDate } = req.body;
+
+    if (!title || !assignedTo) {
+        return res.json({ error: 'need title and employee' });
+    }
+
+    try {
+        const taskId = 'task_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+
+        console.log('creating task:', title);
+        console.log('due date received:', dueDate);
+
+        // fix date handling
+        let dueDateObj = null;
+        if (dueDate) {
+            dueDateObj = new Date(dueDate);
+            console.log('converted due date:', dueDateObj);
+        }
+
+        await db.collection('tasks').doc(taskId).set({
+            id: taskId,
+            title: title,
+            description: description || '',
+            assignedTo: assignedTo,
+            assignedBy: 'owner',
+            status: 'pending',
+            createdAt: new Date(),
+            dueDate: dueDateObj
+        });
+
+        console.log('task created:', taskId);
+        res.json({ success: true, taskId: taskId });
+
+    } catch (err) {
+        console.log('create task failed:', err);
+        res.status(500).json({ error: 'task creation failed' });
+    }
+});
+
+// get all tasks
+router.get('/getAllTasks', async (req, res) => {
+    try {
+        const snapshot = await db.collection('tasks').get();
+        const taskList = [];
+
+        snapshot.forEach(doc => {
+            taskList.push(doc.data());
+        });
+
+        console.log('found tasks:', taskList.length);
+        res.json({ tasks: taskList });
+
+    } catch (error) {
+        console.log('get tasks error:', error);
+        res.json({ error: 'cant load tasks' });
+    }
+});
+
+// delete task
+router.post('/deleteTask', async (req, res) => {
+    const taskId = req.body.taskId;
+
+    if (!taskId) {
+        return res.json({ success: false, message: 'no task id' });
+    }
+
+    try {
+        await db.collection('tasks').doc(taskId).delete();
+        console.log('deleted task:', taskId);
+
+        res.json({ success: true });
+    } catch (err) {
+        console.log('delete task failed:', err);
+        res.status(500).json({ success: false, message: 'delete failed' });
+    }
+});
 module.exports = router;

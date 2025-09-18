@@ -87,7 +87,7 @@ function EmployeeLayout({ children }) {
                     </div>
 
                     <div className="header-right">
-                        <div className="notification-icon">🔔</div>
+
                         <div className="user-menu">
                             <div className="user-avatar-small"></div>
                             <button onClick={logout} className="logout-btn">

@@ -10,27 +10,25 @@ function EmployeeDashboard() {
     const [formData, setFormData] = useState({
         name: '',
         email: '',
-        phoneNumber: '',
-        role: ''
+        phoneNumber: ''
     });
 
     const loadProfile = async () => {
         console.log('loading profile...');
 
-        //get employee from db
-        const employeeData = localStorage.getItem('employeeData');
-        if (!employeeData) {
+        const empData = localStorage.getItem('employeeData');
+        if (!empData) {
             alert('Please login first');
             window.location.href = '/employee';
             return;
         }
 
-        const employee = JSON.parse(employeeData);
-        console.log('employee from storage:', employee);
+        const emp = JSON.parse(empData);
+        console.log('emp from storage:', emp);
 
         try {
             const res = await axios.post('http://localhost:5000/api/employee/getProfile', {
-                employeeId: employee.id
+                employeeId: emp.id
             });
 
             console.log('got profile:', res.data);
@@ -52,6 +50,30 @@ function EmployeeDashboard() {
         }
     };
 
+    const loadMyTasks = async () => {
+        const empData = localStorage.getItem('employeeData');
+        if (!empData) return;
+
+        const emp = JSON.parse(empData);
+        console.log('loading tasks for:', emp.id);
+
+        try {
+            const res = await axios.post('http://localhost:5000/api/employee/getMyTasks', {
+                employeeId: emp.id
+            });
+
+            console.log('got tasks:', res.data);
+
+            if (res.data.tasks) {
+                setTasks(res.data.tasks);
+            } else {
+                setTasks([]);
+            }
+        } catch (err) {
+            console.log('tasks error:', err);
+        }
+    };
+
     const updateProfile = async () => {
         if (!formData.name || !formData.email || !formData.phoneNumber) {
             alert('Please fill all fields');
@@ -62,9 +84,9 @@ function EmployeeDashboard() {
         console.log('updating profile:', formData);
 
         try {
-            const employeeData = JSON.parse(localStorage.getItem('employeeData'));
+            const empData = JSON.parse(localStorage.getItem('employeeData'));
             const res = await axios.post('http://localhost:5000/api/employee/updateProfile', {
-                employeeId: employeeData.id,
+                employeeId: empData.id,
                 ...formData
             });
 
@@ -72,7 +94,7 @@ function EmployeeDashboard() {
                 console.log('profile updated');
                 alert('Profile updated successfully!');
                 setEditMode(false);
-                loadProfile(); // reload profile
+                loadProfile();
             } else {
                 alert('Update failed');
             }
@@ -84,6 +106,78 @@ function EmployeeDashboard() {
         setLoading(false);
     };
 
+    const updateTaskStatus = async (taskId, newStatus) => {
+        console.log('updating task:', taskId, 'to:', newStatus);
+
+        try {
+            const res = await axios.post('http://localhost:5000/api/employee/updateTaskStatus', {
+                taskId: taskId,
+                status: newStatus
+            });
+
+            if (res.data.success) {
+                console.log('task updated');
+                alert('Task status updated!');
+                loadMyTasks();
+            } else {
+                alert('Update failed');
+            }
+        } catch (err) {
+            console.log('task update error:', err);
+            alert('Error updating task');
+        }
+    };
+
+    const getStatusColor = (status) => {
+        if (status === 'done') return '#28a745';
+        if (status === 'in_progress') return '#ffc107';
+        return '#6c757d';
+    };
+
+    const formatDate = (dateObj) => {
+    console.log('formatting date:', dateObj);
+    
+    if (!dateObj) return 'No date';
+
+    try {
+        // firebase timestamp with underscore prefix
+        if (dateObj._seconds) {
+            const date = new Date(dateObj._seconds * 1000);
+            return date.toLocaleDateString();
+        }
+
+        // firebase timestamp without underscore  
+        if (dateObj.seconds) {
+            const date = new Date(dateObj.seconds * 1000);
+            return date.toLocaleDateString();
+        }
+
+        // if it's already a date string
+        if (typeof dateObj === 'string') {
+            const date = new Date(dateObj);
+            if (!isNaN(date.getTime())) {
+                return date.toLocaleDateString();
+            }
+        }
+
+        // regular date object
+        if (dateObj instanceof Date) {
+            return dateObj.toLocaleDateString();
+        }
+
+        // try converting to date
+        const date = new Date(dateObj);
+        if (!isNaN(date.getTime())) {
+            return date.toLocaleDateString();
+        }
+
+        return 'Invalid date';
+    } catch (err) {
+        console.log('date format error:', err);
+        return 'Invalid date';
+    }
+};
+
     const logout = () => {
         localStorage.removeItem('employeeData');
         window.location.href = '/employee';
@@ -92,6 +186,7 @@ function EmployeeDashboard() {
     useEffect(() => {
         console.log('employee dashboard loaded');
         loadProfile();
+        loadMyTasks();
     }, []);
 
     if (!profile) {
@@ -106,9 +201,7 @@ function EmployeeDashboard() {
         <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h1>Employee Dashboard</h1>
-                <button onClick={logout} className="btn-secondary">
-                    Logout
-                </button>
+
             </div>
 
             {error && <div className="error-msg">{error}</div>}
@@ -171,49 +264,90 @@ function EmployeeDashboard() {
                         <p><strong>Email:</strong> {profile.email}</p>
                         <p><strong>Phone:</strong> {profile.phoneNumber}</p>
                         <p><strong>Role:</strong> {profile.role}</p>
-
                     </div>
                 )}
             </div>
 
-            {/* tasks section - placeholder */}
+            {/* My Tasks */}
             <div style={{ backgroundColor: '#ffffff', padding: '20px', border: '1px solid #ddd', borderRadius: '8px', marginBottom: '20px' }}>
-                <h2>My Tasks</h2>
-                <p style={{ color: '#666', fontStyle: 'italic' }}>
-                    Task management feature will be implemented later.
-                </p>
+                <h2>My Tasks ({tasks.length})</h2>
 
-                {/* Mock tasks */}
-                <div style={{ marginTop: '15px' }}>
-                    <div style={{ padding: '10px', backgroundColor: '#f8f9fa', marginBottom: '10px', borderRadius: '4px' }}>
-                        <p><strong>Sample Task 1:</strong> Complete project documentation</p>
-                        <p style={{ fontSize: '14px', color: '#666' }}>Status: In Progress</p>
+                {tasks.length === 0 ? (
+                    <p style={{ color: '#666' }}>No tasks assigned yet</p>
+                ) : (
+                    <div>
+                        {tasks.map((task, idx) => (
+                            <div
+                                key={task.id || idx}
+                                style={{
+                                    padding: '15px',
+                                    border: '1px solid #e0e0e0',
+                                    borderRadius: '8px',
+                                    marginBottom: '10px',
+                                    backgroundColor: '#f8f9fa'
+                                }}
+                            >
+                                <h4 style={{ margin: '0 0 10px 0', color: '#333' }}>{task.title}</h4>
+                                {task.description && (
+                                    <p style={{ margin: '0 0 10px 0', color: '#666', fontSize: '14px' }}>
+                                        {task.description}
+                                    </p>
+                                )}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div style={{ display: 'flex', gap: '20px', fontSize: '13px', color: '#666' }}>
+                                        <span><strong>Status:</strong>
+                                            <span style={{
+                                                color: getStatusColor(task.status),
+                                                fontWeight: 'bold',
+                                                marginLeft: '5px'
+                                            }}>
+                                                {task.status.replace('_', ' ')}
+                                            </span>
+                                        </span>
+                                        {task.dueDate && (
+                                            <span><strong>Due:</strong> {formatDate(task.dueDate)}</span>
+                                        )}
+                                        <span><strong>Assigned:</strong> {formatDate(task.createdAt)}</span>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '10px' }}>
+                                        {task.status !== 'in_progress' && task.status !== 'done' && (
+                                            <button
+                                                onClick={() => updateTaskStatus(task.id, 'in_progress')}
+                                                style={{
+                                                    backgroundColor: '#ffc107',
+                                                    color: 'white',
+                                                    border: 'none',
+                                                    padding: '5px 10px',
+                                                    borderRadius: '4px',
+                                                    cursor: 'pointer',
+                                                    fontSize: '12px'
+                                                }}
+                                            >
+                                                Start
+                                            </button>
+                                        )}
+                                        {task.status !== 'done' && (
+                                            <button
+                                                onClick={() => updateTaskStatus(task.id, 'done')}
+                                                style={{
+                                                    backgroundColor: '#28a745',
+                                                    color: 'white',
+                                                    border: 'none',
+                                                    padding: '5px 10px',
+                                                    borderRadius: '4px',
+                                                    cursor: 'pointer',
+                                                    fontSize: '12px'
+                                                }}
+                                            >
+                                                Complete
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
-                    <div style={{ padding: '10px', backgroundColor: '#f8f9fa', marginBottom: '10px', borderRadius: '4px' }}>
-                        <p><strong>Sample Task 2:</strong> Review code changes</p>
-                        <p style={{ fontSize: '14px', color: '#666' }}>Status: Pending</p>
-                    </div>
-                </div>
-            </div>
-
-            {/* chat Section - Placeholder */}
-            <div style={{ backgroundColor: '#ffffff', padding: '20px', border: '1px solid #ddd', borderRadius: '8px' }}>
-                <h2>Chat with Owner</h2>
-                <p style={{ color: '#666', fontStyle: 'italic' }}>
-                    Real-time chat feature will be implemented next.
-                </p>
-                <div style={{
-                    height: '200px',
-                    backgroundColor: '#f8f9fa',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginTop: '10px'
-                }}>
-                    <p>Chat interface coming soon...</p>
-                </div>
+                )}
             </div>
         </div>
     );

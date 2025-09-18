@@ -97,9 +97,7 @@ function OwnerDashboard() {
         <div style={{ padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h1>Employee Management</h1>
-                <button onClick={logout} className="btn-secondary">
-                    Logout
-                </button>
+
             </div>
 
             <div style={{ marginBottom: '20px' }}>
