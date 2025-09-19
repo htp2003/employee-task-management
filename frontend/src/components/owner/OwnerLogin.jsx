@@ -80,7 +80,7 @@ function OwnerLogin() {
                     <div className="form-group">
                         <input
                             type="text"
-                            placeholder="Enter phoneNumber number"
+                            placeholder="Phone number (+84 format)"
                             value={phoneNumber}
                             onChange={(e) => setPhone(e.target.value)}
                             className="form-input"

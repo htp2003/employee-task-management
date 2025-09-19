@@ -73,7 +73,7 @@ const setupChatSocket = (io) => {
             socket.emit('room_joined', { room: roomName });
         });
 
-        // get chat history - FIXED QUERY
+        // get chat history
         socket.on('get_chat_history', async (data) => {
             const { userId, userType } = data;
 
@@ -83,7 +83,7 @@ const setupChatSocket = (io) => {
                 let messages = [];
 
                 if (userType === 'owner') {
-                    // Owner gets all messages
+                    // owner gets all messages
                     const snapshot = await db.collection('messages')
                         .orderBy('timestamp', 'asc')
                         .limit(100)
@@ -97,8 +97,7 @@ const setupChatSocket = (io) => {
                         });
                     });
                 } else {
-                    // Employee gets messages where they are sender or receiver
-                    // Query 1: Messages from employee to owner
+                    // messages from employee to owner
                     const fromEmpQuery = await db.collection('messages')
                         .where('from', '==', userId)
                         .where('to', '==', 'owner')
@@ -112,7 +111,7 @@ const setupChatSocket = (io) => {
                         });
                     });
 
-                    // Query 2: Messages from owner to employee
+                    // messages from owner to employee
                     const toEmpQuery = await db.collection('messages')
                         .where('from', '==', 'owner')
                         .where('to', '==', userId)
@@ -126,7 +125,7 @@ const setupChatSocket = (io) => {
                         });
                     });
 
-                    // Sort by timestamp since we combined two queries
+                    // Sort by timestamp
                     messages.sort((a, b) => a.timestamp - b.timestamp);
                 }
 

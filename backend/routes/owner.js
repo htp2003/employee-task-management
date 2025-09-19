@@ -3,6 +3,7 @@ const router = express.Router();
 const { db } = require('../config/firebase');
 const { sendSMS } = require('../config/vonage');
 const { sendEmail } = require('../utils/emailService');
+const { messaging } = require('firebase-admin');
 
 //random 6 digit code
 function generateAccessCode() {
@@ -144,6 +145,29 @@ router.post('/getEmployee', async (req, res) => {
     }
 });
 
+//edit employee
+router.post('/updateEmployee', async (req, res) => {
+    try {
+        const { employeeId, name, email, phoneNumber, role } = req.body;
+        if (!employeeId) {
+            return res.status(400).json({ success: false, error: 'need employee ID' });
+        }
+        const updateData = {};
+        if (name) updateData.name = name;
+        if (email) updateData.email = email;
+        if (phoneNumber) updateData.phoneNumber = phoneNumber;
+        if (role) updateData.role = role;
+        updateData.updatedAt = new Date();
+
+        await db.collection('employees').doc(employeeId).update(updateData);
+
+        res.json({ success: true, message: 'employee updated' });
+
+    } catch (error) {
+        console.error(`Update failed: ${error.message}`);
+        res.status(500).json({ success: false, error: 'Server error' });
+    }
+})
 //delete employee
 router.post('/deleteEmployee', async (req, res) => {
     try {

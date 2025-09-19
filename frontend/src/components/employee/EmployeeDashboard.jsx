@@ -135,53 +135,49 @@ function EmployeeDashboard() {
     };
 
     const formatDate = (dateObj) => {
-    console.log('formatting date:', dateObj);
-    
-    if (!dateObj) return 'No date';
+        console.log('formatting date:', dateObj);
 
-    try {
-        // firebase timestamp with underscore prefix
-        if (dateObj._seconds) {
-            const date = new Date(dateObj._seconds * 1000);
-            return date.toLocaleDateString();
-        }
+        if (!dateObj) return 'No date';
 
-        // firebase timestamp without underscore  
-        if (dateObj.seconds) {
-            const date = new Date(dateObj.seconds * 1000);
-            return date.toLocaleDateString();
-        }
+        try {
+            // firebase timestamp with underscore prefix
+            if (dateObj._seconds) {
+                const date = new Date(dateObj._seconds * 1000);
+                return date.toLocaleDateString();
+            }
 
-        // if it's already a date string
-        if (typeof dateObj === 'string') {
+            // firebase timestamp without underscore  
+            if (dateObj.seconds) {
+                const date = new Date(dateObj.seconds * 1000);
+                return date.toLocaleDateString();
+            }
+
+            // if it's already a date string
+            if (typeof dateObj === 'string') {
+                const date = new Date(dateObj);
+                if (!isNaN(date.getTime())) {
+                    return date.toLocaleDateString();
+                }
+            }
+
+            // regular date object
+            if (dateObj instanceof Date) {
+                return dateObj.toLocaleDateString();
+            }
+
+            // try converting to date
             const date = new Date(dateObj);
             if (!isNaN(date.getTime())) {
                 return date.toLocaleDateString();
             }
+
+            return 'Invalid date';
+        } catch (err) {
+            console.log('date format error:', err);
+            return 'Invalid date';
         }
-
-        // regular date object
-        if (dateObj instanceof Date) {
-            return dateObj.toLocaleDateString();
-        }
-
-        // try converting to date
-        const date = new Date(dateObj);
-        if (!isNaN(date.getTime())) {
-            return date.toLocaleDateString();
-        }
-
-        return 'Invalid date';
-    } catch (err) {
-        console.log('date format error:', err);
-        return 'Invalid date';
-    }
-};
-
-    const logout = () => {
-        localStorage.removeItem('employeeData');
-        window.location.href = '/employee';
     };
+
 
     useEffect(() => {
         console.log('employee dashboard loaded');

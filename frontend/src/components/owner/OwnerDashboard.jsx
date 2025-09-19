@@ -1,20 +1,15 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import EmployeeModal from './EmployeeModal';
 
 function OwnerDashboard() {
     const [employees, setEmployees] = useState([]);
-    const [showForm, setShowForm] = useState(false);
+    const [showModal, setShowModal] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        phoneNumber: '',
-        role: ''
-    });
+    const [selectedEmployee, setSelectedEmployee] = useState(null);
 
     const loadEmployees = async () => {
         console.log('loading employees...');
-
         try {
             const response = await axios.get('http://localhost:5000/api/owner/getAllEmployees');
             console.log('got employees:', response.data);
@@ -31,33 +26,80 @@ function OwnerDashboard() {
         }
     };
 
-    const handleSubmit = async () => {
-        if (!formData.name || !formData.email || !formData.phoneNumber || !formData.role) {
-            alert('Please fill all fields');
-            return;
-        }
-
+    const handleModalSubmit = async (formData) => {
         setLoading(true);
-        console.log('creating employee:', formData);
+        console.log('submitting form...');
 
-        try {
-            const res = await axios.post('http://localhost:5000/api/owner/createEmployee', formData);
+        if (selectedEmployee) {
+            // update employee
+            console.log('updating employee:', selectedEmployee.id);
+            try {
+                const response = await axios.post('http://localhost:5000/api/owner/updateEmployee', {
+                    employeeId: selectedEmployee.id,
+                    name: formData.name,
+                    email: formData.email,
+                    phoneNumber: formData.phoneNumber,
+                    role: formData.role
+                });
 
-            if (res.data.success) {
-                console.log('employee created:', res.data.employeeId);
-                alert('Employee created successfully!');
-                setFormData({ name: '', email: '', phoneNumber: '', role: '' });
-                setShowForm(false);
-                loadEmployees(); // reload list
-            } else {
-                alert('Failed to create employee');
+                if (response.data.success) {
+                    alert('Employee updated!');
+                    setShowModal(false);
+                    setSelectedEmployee(null);
+                    loadEmployees();
+                } else {
+                    alert('Update failed');
+                }
+            } catch (err) {
+                console.log('update error:', err);
+                alert('Error updating employee');
             }
-        } catch (error) {
-            console.log('create error:', error);
-            alert('Error creating employee');
+        } else {
+            // create new employee
+            console.log('creating employee:', formData);
+            try {
+                const res = await axios.post('http://localhost:5000/api/owner/createEmployee', formData);
+
+                if (res.data.success) {
+                    console.log('employee created:', res.data.employeeId);
+                    alert('Employee created successfully!');
+                    setShowModal(false);
+                    loadEmployees();
+                } else {
+                    alert('Failed to create employee');
+                }
+            } catch (error) {
+                console.log('create error:', error);
+                alert('Error creating employee');
+            }
         }
 
         setLoading(false);
+    };
+
+    const openAddModal = () => {
+        console.log('opening add modal');
+        setSelectedEmployee(null);
+        setShowModal(true);
+    };
+
+    const editEmp = (empId) => {
+        console.log('editing employee:', empId);
+        const employee = employees.find(emp => emp.id === empId);
+
+        if (!employee) {
+            alert('Employee not found');
+            return;
+        }
+
+        setSelectedEmployee(employee);
+        setShowModal(true);
+    };
+
+    const closeModal = () => {
+        console.log('closing modal');
+        setShowModal(false);
+        setSelectedEmployee(null);
     };
 
     const deleteEmp = async (empId, empName) => {
@@ -83,11 +125,6 @@ function OwnerDashboard() {
         }
     };
 
-    const logout = () => {
-        localStorage.removeItem('ownerPhone');
-        window.location.href = '/';
-    };
-
     useEffect(() => {
         console.log('dashboard loaded');
         loadEmployees();
@@ -97,75 +134,31 @@ function OwnerDashboard() {
         <div style={{ padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h1>Employee Management</h1>
-
             </div>
 
             <div style={{ marginBottom: '20px' }}>
                 <button
-                    onClick={() => setShowForm(!showForm)}
-                    className="btn-primary"
+                    onClick={openAddModal}
+                    style={{
+                        backgroundColor: '#007bff',
+                        color: 'white',
+                        border: 'none',
+                        padding: '10px 20px',
+                        cursor: 'pointer',
+                        borderRadius: '4px'
+                    }}
                 >
-                    {showForm ? 'Cancel' : 'Add Employee'}
+                    Add Employee
                 </button>
             </div>
 
-            {showForm && (
-                <div className="form-container" style={{ marginBottom: '20px', padding: '15px', border: '1px solid #ddd' }}>
-                    <h3>Add New Employee</h3>
-                    <div className="form-group">
-                        <input
-                            type="text"
-                            placeholder="Full Name"
-                            value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            className="form-input"
-                        />
-                    </div>
-                    <div className="form-group">
-                        <input
-                            type="email"
-                            placeholder="Email Address"
-                            value={formData.email}
-                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                            className="form-input"
-                        />
-                    </div>
-                    <div className="form-group">
-                        <input
-                            type="text"
-                            placeholder="Phone Number"
-                            value={formData.phoneNumber}
-                            onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                            className="form-input"
-                        />
-                    </div>
-                    <div className="form-group">
-                        <select
-                            value={formData.role}
-                            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                            className="form-input"
-                            style={{ backgroundColor: 'white' }}
-                        >
-                            <option value="">Select Role</option>
-                            <option value="Manager">Manager</option>
-                            <option value="Developer">Developer</option>
-                            <option value="Designer">Designer</option>
-                            <option value="Tester">Tester</option>
-                            <option value="Analyst">Analyst</option>
-                            <option value="Support">Support</option>
-                            <option value="HR">HR</option>
-                            <option value="Marketing">Marketing</option>
-                        </select>
-                    </div>
-                    <button
-                        onClick={handleSubmit}
-                        disabled={loading}
-                        className="btn-success"
-                    >
-                        {loading ? 'Creating...' : 'Create Employee'}
-                    </button>
-                </div>
-            )}
+            <EmployeeModal
+                isOpen={showModal}
+                onClose={closeModal}
+                onSubmit={handleModalSubmit}
+                employee={selectedEmployee}
+                loading={loading}
+            />
 
             <div className="employee-list">
                 <h2>Employee List ({employees.length})</h2>
@@ -189,15 +182,40 @@ function OwnerDashboard() {
                                     <td style={{ padding: '8px', border: '1px solid #ddd' }}>{emp.name}</td>
                                     <td style={{ padding: '8px', border: '1px solid #ddd' }}>{emp.email}</td>
                                     <td style={{ padding: '8px', border: '1px solid #ddd' }}>{emp.phoneNumber}</td>
-                                    <td style={{ padding: '8px', border: '1px solid #ddd' }}>
+                                    <td style={{ padding: '8px', border: '1px solid #ddd' }}>{emp.role}</td>
+                                    <td
+                                        style={{
+                                            padding: "8px",
+                                            border: "1px solid #ddd",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            gap: "10px",
+                                        }}
+                                    >
+                                        <button
+                                            onClick={() => editEmp(emp.id)}
+                                            style={{
+                                                backgroundColor: "#ffc107",
+                                                color: "black",
+                                                border: "none",
+                                                padding: "8px 12px",
+                                                cursor: "pointer",
+                                                borderRadius: "4px"
+                                            }}
+                                        >
+                                            Edit
+                                        </button>
+
                                         <button
                                             onClick={() => deleteEmp(emp.id, emp.name)}
                                             style={{
-                                                backgroundColor: '#dc3545',
-                                                color: 'white',
-                                                border: 'none',
-                                                padding: '5px 10px',
-                                                cursor: 'pointer'
+                                                backgroundColor: "#dc3545",
+                                                color: "white",
+                                                border: "none",
+                                                padding: "8px 12px",
+                                                cursor: "pointer",
+                                                borderRadius: "4px"
                                             }}
                                         >
                                             Delete
